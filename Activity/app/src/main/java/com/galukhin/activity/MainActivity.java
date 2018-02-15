@@ -8,85 +8,25 @@ import android.util.Log;
 import android.widget.Button;
 import android.widget.TextView;
 
-/* CLASS HIERARCHY:
-* > MainActivity
-* > AppCompatActivity - If MaterialDesign implementation is needed = Target < API 21
-* > FragmentActivity - If nested Fragments are needed
-* > BaseFragmentActivityApi16 (Honeycomb)
-* > BaseFragmentActivityApi14 (Eclair)
-* > SupportActivity (Donut)
-* > Activity */
-
-
-/* MINIMUM API 15-16 ~ 95% devices */
-
-
-/* ACTIVITY LIFECYCLE:
-* 1. onCreate()
-* 2. onStart() // + onRestoreInstanceState() if there was rotation
-* 3. onResume()
-* 4. > NAVIGATING TO ANOTHER ACTIVITY
-* 5. onPause(), onSaveInstanceState()
-* 6. onCreate(), onStart(), onResume() // for another activity
-* 7. onStop()
-* 8. > BACK PRESSED
-* 9. onPause(), onSaveInstanceState() // for another activity
-* 10. onDestroy() for another activity!
-* 11. onRestart()
-* 12. onStart()
-* 13. onResume()
-* 14. onStop() for another activity
-* 15. > BACK PRESSED AGAIN OR HOMESCREEN
-* 16. onPause(), onSaveInstanceState(), onStop() // for both buttons
-* 17. onDestroy() (only for BACK button) */
-
-
-/* STACK - here Activities are being added
-* LIFO - last in first out
-* onDestroy is called when Activity is deleted from stack (back pressed) */
-
-
-/* SCREEN ROTATION (normal)
-* 1. onPause()
-* 2. onStop()
-* 3. onDestroy()
-* 4. onCreate(): partial reinitialization
-* 5. onStart()
-* 6. onResume()
-*
-* All views have unique ID:
-* - variables are reinitialized
-* - TextView and ButtonView are reinitialized
-* - EditText, CheckBox, Switch, RadioButton are NOT reinitialized
-*
-* Views don't have unique ID:
-* - everything is reinitialized
-*
-* Handling:
-* 1. Via onSaveInstanceState + onRestoreInstanceState (or in onCreate)
-* 2. Manually via onConfigurationChange, Activity not destroyed (NOT RECOMMENDED)
-*   a) add android:configChanges="orientation|screenSize" in manifest
-*   or android:configChanges="orientation" if target is < API 12
-*   b) override onConfigurationChanged()
-*   c) NO LIFECYCLE METHODS ARE CALLED - only onConfigurationChanged()
-*   d) in onConfigurationChanged() change resources if needed */
-
 
 public class MainActivity extends AppCompatActivity {
 
-    private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
-
     Button button1; // Go to screen 2
+
+    private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
     Button button2; // Go to screen 3
     Button button3; // Change text button
     TextView textView;
 
     @Override
-    /* Called when activity is first created
-    * Create views
-    * Attach layouts (setContentView)
-    * Initialize field variables and Widgets
-    * Make use of Bundle parameters to retrieve previous froze state*/
+    /* - Выполняется при создании операции
+    *
+    * - Для базовой логики, которая должна происходить единожды для всего цикла
+    * (напр, связать данные со списками, инициализировать фоновые потоки,
+    * инициализировать переменные класса, настроить UI)
+    *
+    * - получает параметр savedInstanceState - объект Bundle с сохраненным состоянием операции
+    * (если не было операции ранее - null)*/
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate()");
@@ -111,10 +51,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    /*This is called only if set up properly in Manifest
-    * No other lifecycle methods are called if configuration gets changed
-    * Not recommended by guidelines
-    * Use ONLY when restoring activity is very expensive*/
+    /* - НЕ РЕКОМЕНДУЕТСЯ ГАЙДЛАЙНАМИ
+    *
+    * - Используй ТОЛЬКО, если восстановление активности очень накладное
+    *
+    * - Выполняется только, если указано в манифесте android:configChanges="orientation|screenSize"
+    *
+    * - Другие методы жизненного цикла не вызываются*/
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         Log.i(TAG, "onConfigurationChanged()");
@@ -127,24 +70,34 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    /*Only called if activity is restarted after being stopped*/
+    /* - Выполняется, если пользователь возвращается в операцию после onStop()*/
     protected void onRestart() {
         super.onRestart();
         Log.i(TAG, "onRestart()");
     }
 
     @Override
-    /* Called when activity is becoming visible to user
-    * User interaction not allowed*/
+    /* - запускается, когда операция входит в состояние Started
+    *
+    * - подготавливает операцию для вывода на передний план
+    * (напр, инициализация кода UI,
+    * регистрация  BroadcastReceiver, который отслеживает изменения, отражаемые в UI)
+
+    * - пользователь еще не может взаимодействовать с операцией*/
     protected void onStart() {
         super.onStart();
         Log.i(TAG, "onStart()");
     }
 
     @Override
-    /*Called after onStart() in case of rotation
-    * Data can be restored via onCreate() as well, but this way is cleaner*/
+    /* - восстановить состояние активности после уничтожения можно из Bundle
+    * - onCreate() и onRestoreInstanceState() получают тот же Bundle
+    * - чтобы узнать, было ли сохранение - проверка Bundle на null
+    * - если null - система создает новую копию операции вместо воссоздания той, что была уничтожена
+    * - onRestoreInstanceState() вызывается только, если было сохранение (не нужна проверка на null)
+    * - сначала всегда вызов суперкласса*/
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         Log.i(TAG, "onRestoreInstanceState()");
 
         if (savedInstanceState != null) {
@@ -153,30 +106,61 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    /* User interaction enabled
-    * Activity appears at top of Activity Stack
-    * Activity is completely in Foreground*/
+    /* - запускается, когда операция входит в состояние Resumed и апп выводится на передний план
+    *
+    * - операция становится в конце стека
+    *
+    * - в этом состоянии пользователь взаимодействует с аппом, и пока оно в фокусе
+    *
+    * - если уходит из фокуса (напр, звонок, другая операция) - переход в состояние Paused
+    * и запуск onPause()
+    *
+    * - обратно вызывается когда возвращается в фокус
+    *
+    * - нужно имплементировать для инициализации компонентов при предшествующем освобождении их
+    * при onPause() (напр. анимация)*/
     protected void onResume() {
         super.onResume();
         Log.i(TAG, "onResume()");
     }
 
     @Override
-    protected void onPostResume() {
-        super.onPostResume();
-        Log.i(TAG, "onPostResume()");
-    }
-
-    @Override
-    /*Activity starts to go into Background
-    * Save persistent data here*/
+    /*- при первых признаках ухода юзера из активности:
+    *       + новая операция
+    *       + звонок и т.д.
+    *       + полупрозрачная операция (диалоговое окно)
+    *       + с Android 7.0 (API level 24) многооконный режим для нескольких аппов
+    *
+    * - для приостановки напр, анимаций, проигрывания звуков, освобождение системных ресурсов
+    * (приемники, сенсоры, камера) - для экономии напр. батареи
+    *
+    * - НЕ для сохранения состояния, обращений по сети или с дб,
+    * т.к. слишком быстро выполняется (нужно в onStop())
+    *
+    * - завершение метода не означает выход из состояния Paused - в нем оно остается
+    * до возобновления операции или ее полного исчезновения для юзера
+    *
+    * - если операция вернулась в состояние Resumed из Paused, она остается в памяти
+    * и используется снова (т.е. не нужно реинициализировать компоненты)*/
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause()");
     }
 
     @Override
-    /*Called after onPause()*/
+    /* - если нужно сохранить что-то кроме данных о состоянии иерархии объектов View операции
+    * (сохраняются автоматически в Bundle) при уничтожении
+    *
+    * - во время остановки операции вызывается onSaveInstanceState() - для сохранения коллекции пар
+    * ключ-значение
+    *
+    * - имплементировать метод нужно ПОСЛЕ onPause() и ДО onStop().
+    * Не имплементировать метод в onPause().
+    *
+    * - сохранение данных, напр. в дб - когда операция в фоне. Если такой возможности нет,
+    * то в onStop().
+    *
+    * - всегда нужно вызывать суперкласс, чтобы он мог сохранить состояние иерархии view*/
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         Log.i(TAG, "onSaveInstanceState()");
@@ -184,17 +168,206 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    /*User interaction stops
-    * Activity completely in Background*/
+    /* - когда операция не видна - она входит в состояние Stopped
+    * (напр., новая операция, закрывающая весь экран)
+    *
+    * - необходимо освобождать почти все ресурсы, которые не нужны юзеру, когда он их не использует
+    * (напр, unregister BroadcastReceiver для UI)
+    *
+    * - освобождать ресурсы, которые могут привести к утечке памяти - система может убить процесс,
+    * в котором выполняется апп без вызова onDestroy()!
+    *
+    * - в состоянии Stopped операция остается в памяти, но не прикреплена к менеджеру окон.
+    * Система также следит за текущим состоянием каждого объекта View в лейауте - позиция скролла
+    * в списке или если юзер ввел текст в EditText, его контент не нужно сохранять и восстанавливать
+    *
+    * - система может вызвать метод, когда операция перестала выполняться и скоро будет уничтожена
+    * для освобождения памяти - состояние объектов View сохраняется в Bundle и восстанавливается,
+    * когда юзер возвращается в операцию
+    *
+    * - если вызывается новая копия операции, которая сейчас в фоне - onRestart() не вызывается,
+    * только onStart() и onResume()*/
     protected void onStop() {
         super.onStop();
         Log.i(TAG, "onStop()");
     }
 
     @Override
-    /*Activity is about to be destroyed*/
+    /* - когда операция перестала работать:
+    *       + кто-то вызвал finish()
+    *       + система временно уничтожает процесс с операцияю для освобождения места
+    *       + может вызываться системой при смене ориентации, за чем немедленно следует onCreate()
+    *       + апп давно не используется
+    *       + пользователь нажал Back
+    *
+    * - узнать каким методом уничтожается - isFinishing()
+    *
+    * - освобождает все неосвобожденные ресурсы (напр. в onStop())*/
     protected void onDestroy() {
         super.onDestroy();
         Log.i(TAG, "onDestroy()");
     }
 }
+
+
+/* Каждая операция должна быть зарегистрирована в манифесте*/
+
+
+/* После публикации не менять названия активности - поломается, напр, ярлык*/
+
+
+/* Родительская операция должна иметь те же права, что и подоперация (для запуска подоперации)*/
+
+
+/* ИЕРАРХИЯ:
+* > MainActivity
+* > AppCompatActivity - если нужен MaterialDesign (и Target < API 21)
+* > FragmentActivity - если нужны вложенные Fragments
+* > BaseFragmentActivityApi16 (Honeycomb)
+* > BaseFragmentActivityApi14 (Eclair)
+* > SupportActivity (Donut)
+* > Activity */
+
+
+/* у 95% устройств API > 15-16 */
+
+
+/* ЖИЗНЕННЫЙ ЦИКЛ:
+* 1. onCreate()
+* 2. onStart() // + onRestoreInstanceState() если была ротация
+* 3. onResume()
+* 4. > НАВИГАЦИЯ В ДРУГУЮ операция
+* 5. onPause(), onSaveInstanceState()
+* 6. onCreate(), onStart(), onResume() // для другой активности
+* 7. onStop()
+* 8. > НАЖАЛИ BACK
+* 9. onPause(), onSaveInstanceState() // для другой активности
+* 10. onDestroy() для другой активности!
+* 11. onRestart()
+* 12. onStart()
+* 13. onResume()
+* 14. onStop() для другой активности
+* 15. > НАЖАЛИ HOMESCREEN ИЛИ СНОВА BACK
+* 16. onPause(), onSaveInstanceState(), onStop() // для обоих вариантов
+* 17. onDestroy() (только для BACK) */
+
+
+/*ДРУГАЯ ОПЕРАЦИЯ ИЛИ ДИАЛОГОВОЕ ОКНО НА ПЕРЕДНЕМ ПЛАНЕ. КНОПКИ OVERVIEW И HOME
+* - если частично закрывает - переводит операцию в состояние Paused, потом обратно в onResume()
+* - если полностью - вызываются onPause() и onStop(), потом обратно onRestart(), onStart(), onResume()
+* - если новая копия операции, которая на фоне - onRestart() не вызывается, только onStart() и onResume()
+* - кнопки Overview или Home ведут себя, будто текущая операция полностью перекрывается */
+
+
+/* КНОПКА BACK
+* - вызов onPause(), onStop(), onDestroy()
+*
+* - кроме уничтожения операции еще и удаления из обратного стека
+*
+* - по дефолту onSaveInstanceState() не вызывается. Если что - onBackPressed() - для подтверждения
+* выхода + желательно вызов super.onBackPressed() */
+
+
+/* СМЕНА КОНФИГУРАЦИИ:
+* - при смене:
+*       + ориентации экрана
+*       + языка
+*       + устройства ввода
+*
+* - при входе в многоэкранный режим (доступен с Android 7.0 (API level 24)) - система сообщает
+* работающей операции о смене конфигурации - можно обработать самому или дать системе*/
+
+
+/* РОТАЦИЯ ЭКРАНА (без самостоятельной обработки)
+* Порядок вызовов методов:
+* 1. onPause()
+* 2. onStop()
+* 3. onDestroy()
+* 4. onCreate() // частичная реинициализация объектов
+* 5. onStart()
+* 6. onResume()
+*
+* Если у всех view есть уникальный ID:
+* - переменные реинициализируются
+* - TextView и ButtonView реинициализируются
+* - EditText, CheckBox, Switch, RadioButton НЕ реинициализируются
+*
+* Если у всех view нет уникального ID:
+* - все реинициализируются */
+
+
+/* ОБРАБОТКА РОТАЦИИ:
+* 1. При помощи onSaveInstanceState и onRestoreInstanceState (можно сразу в onCreate(), но так красивее)
+* 2. Вручную при помощи onConfigurationChange() (операция не уничтожается) (НЕ РЕКОМЕНДУЕТСЯ)
+*   a) добавить в операцию в манифесте android:configChanges="orientation|screenSize"
+*   или android:configChanges="orientation", если таргет ниже API 12
+*   b) переопределить onConfigurationChanged()
+*   c) никакие методы жизненного цикла НЕ ВЫЗЫВАЮТСЯ - только onConfigurationChanged()
+*   d) в onConfigurationChanged() поменять ресурсы, если нужно*/
+
+
+/*ТАСКИ И ОБРАТНЫЙ СТЕК
+* - таск - коллекция операций, с которыми работает пользователь, делая какую-то работу
+*
+* - таск может уходить на фон - юзер начал новый или ушел на рабочий стол кнопкой Home
+*
+* - если соберется много фоновых тасков - система может начать уничтожать операции для
+* восстановления памяти
+*
+* - операции организованы в обратный стек - в порядке, в котором открывались.
+* предыдущая операция останавливается, когда добавляется новая
+*
+* - порядок операций не меняется - только добавляются в конец или убираются оттуда
+*
+* - при нажатии Back текущая операция уничтожается, продолжается предыдущая, и так до рабочего стола
+*
+* - если не осталось активностей - таска больше нет
+*
+* - с Android 7.0 (API level 24) в многоэкранном режиме - каждый таск управляется системой отдельно.
+* У каждого окна могут быть несколько тасков.
+*
+* - при касании иконки - таск аппа выходит на передний план.
+* Если не было до этого таска - создается новый и главная операция открывается корневой в стеке
+*
+* - если в какую-то операцию можно зайти с разных мест, то по дефолту она будет дублироваться в стеке*/
+
+
+/* СОСТОЯНИЕ И УДАЛЕНИЕ ИЗ ПАМЯТИ
+* - система удаляет не только операцию, но весь процесс с ней, когда нужна оперативная память
+* - вероятность удаления зависит от состояния процесса в момент времени
+* - состояние процесса зависит от состояния его операции
+* - удалить процесс можно из Application Manager в Settings*/
+
+
+/*ВЕРОЯТНОСТЬ УДАЛЕНИЯ:
+* - Меньшая: Передний план (или подготовка к нему) - состояние операции (Created, Started, Resumed)
+* - Большая: Фон (утеря фокуса) - состояние операции (Paused)
+* - Еще большая:
+*       + Фон (не видно юзеру) - состояние операции (Stopped)
+*       + Пустая - состояние операции (Destroyed)*/
+
+
+/*ИЕРАРХИЯ ВАЖНОСТИ ПРОЦЕССОВ
+* 1. Процесс на переднем плане - нужен для текущих действий пользователя.
+* Будет убит в самом крайнем случае. Условия, чтобы он считался таковым:
+*       + работает для операции на переднем плане (onResume())
+*       + в нем есть работающий ресивер (выполняется BroadcastReceiver.onReceive())
+*       + в нем есть сервис, выполняющий код в одном из своих колбеков
+*       (Service.onCreate(), Service.onStart(), или Service.onDestroy()).
+*
+* 2. Видимый процесс - выполняет работу, о которой знает юзер.
+* Будет убит только ради работы процесса с переднего плана. Считается таковым, если:
+*       + работает для видимой операции, но не на переднем плане (onPause())
+*       + в нем есть сервис, который работает на переднем плане через Service.startForeground()
+*       + в нем есть сервис, который система выполняет для видимой фичи,
+*       о которой знает пользователь (напр, обои)
+*
+* 3. Процесс сервиса, запущенный через startService().
+* Может быть понижен в приоритете до кешированного, если работает дольше 30 минут.
+*
+* 4. Кешированный процесс - сейчас не нужен и система может его убить при необходимости в памяти.
+* В нормально работающей системе - это единственные процессы, которые используются для управления
+* памятью - система убивает старые по мере необходимости. В самых крайних случаях - убивает все
+* кешированные и переходит к некешированным.
+* В к. процессах обычно 1 или несколько копий остановленных операций (onStop()) - их смерть
+* не приведет к потере, когда юзер к ним вернется - будут воссозданы в новом процессе.*/
