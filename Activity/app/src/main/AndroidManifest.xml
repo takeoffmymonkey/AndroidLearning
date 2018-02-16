@@ -17,8 +17,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.galukhin.activity.SecondActivity" />
-        <activity android:name="com.galukhin.activity.ThirdActivity" />
+        <activity
+            android:name="com.galukhin.activity.SecondActivity"
+            android:parentActivityName="com.galukhin.activity.MainActivity" /> <!-- needed for navigating up -->
+        <activity
+            android:name="com.galukhin.activity.ThirdActivity"
+            android:parentActivityName="com.galukhin.activity.SecondActivity" /> <!-- needed for navigating up -->
     </application>
 
 </manifest>

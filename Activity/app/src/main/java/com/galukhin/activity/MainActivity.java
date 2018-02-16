@@ -1,8 +1,10 @@
 package com.galukhin.activity;
 
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.Button;
@@ -10,12 +12,15 @@ import android.widget.TextView;
 
 public class MainActivity extends AppCompatActivity {
 
-    Button button1; // Go to screen 2
-
     private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
+
+    Button button0; // Restart this screen
+    Button button1; // Go to screen 2
     Button button2; // Go to screen 3
     Button button3; // Change text button
+    Button button4; // Call dialog window
     TextView textView;
+
 
     @Override
     /* - Выполняется при создании операции
@@ -30,6 +35,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         Log.i(TAG, "onCreate()");
         setContentView(R.layout.activity_main);
+        setTitle("Main Activity");
+
+        button0 = findViewById(R.id.button0);
+        button0.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, MainActivity.class));
+        });
 
         button1 = findViewById(R.id.button1);
         button1.setOnClickListener(v -> {
@@ -47,12 +58,31 @@ public class MainActivity extends AppCompatActivity {
             textView.setText("New text");
         });
 
+
+        button4 = findViewById(R.id.button4);
+        button4.setOnClickListener(v -> {
+            Log.i (TAG, "calling test dialog");
+            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+            builder.setTitle("Test message")
+                    .setMessage("Just a test for lifecycle")
+                    .setCancelable(false)
+                    .setNegativeButton("Ok",
+                            new DialogInterface.OnClickListener() {
+                                public void onClick(DialogInterface dialog, int id) {
+                                    dialog.cancel();
+                                }
+                            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        });
     }
 
     @Override
     /* - НЕ РЕКОМЕНДУЕТСЯ ГАЙДЛАЙНАМИ
     *
     * - Используй ТОЛЬКО, если восстановление активности очень накладное
+    *
+    * - Здесь происходит самостоятельная обработка изменений конфигурации
     *
     * - Выполняется только, если указано в манифесте android:configChanges="orientation|screenSize"
     *
@@ -62,14 +92,17 @@ public class MainActivity extends AppCompatActivity {
         Log.i(TAG, "onConfigurationChanged()");
 
         if (newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            // do smth like change image
+            // напр. сменить картинку
         } else if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            // do smth else
+            // что-то другое
         }
     }
 
     @Override
-    /* - Выполняется, если пользователь возвращается в операцию после onStop()*/
+    /* - Выполняется, если пользователь возвращается в операцию после onStop()
+    *
+    * - если вызывается новая копия операции, которая сейчас в фоне - onRestart() не вызывается,
+    * только onStart() и onResume()*/
     protected void onRestart() {
         super.onRestart();
         Log.i(TAG, "onRestart()");
@@ -96,12 +129,10 @@ public class MainActivity extends AppCompatActivity {
     * - onRestoreInstanceState() вызывается только, если было сохранение (не нужна проверка на null)
     * - сначала всегда вызов суперкласса*/
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        super.onRestoreInstanceState(savedInstanceState);
         Log.i(TAG, "onRestoreInstanceState()");
 
-        if (savedInstanceState != null) {
-            textView.setText(savedInstanceState.getString("textview text"));
-        }
+        textView.setText(savedInstanceState.getString("textview text"));
     }
 
     @Override
@@ -140,10 +171,14 @@ public class MainActivity extends AppCompatActivity {
     * до возобновления операции или ее полного исчезновения для юзера
     *
     * - если операция вернулась в состояние Resumed из Paused, она остается в памяти
-    * и используется снова (т.е. не нужно реинициализировать компоненты)*/
+    * и используется снова (т.е. не нужно реинициализировать компоненты)
+    *
+    * - здесь можно использовать метод isFinishing(), чтобы узнать завершается ли полностью
+    * операция (напр. кто-то вызвал finish() или кто-то запросил завершение)*/
     protected void onPause() {
         super.onPause();
         Log.i(TAG, "onPause()");
+        Log.i(TAG, "activity is finishing: " + isFinishing());
     }
 
     @Override
@@ -194,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     /* - когда операция перестала работать:
     *       + кто-то вызвал finish()
-    *       + система временно уничтожает процесс с операцияю для освобождения места
+    *       + система временно уничтожает процесс с операцией для освобождения места
     *       + может вызываться системой при смене ориентации, за чем немедленно следует onCreate()
     *       + апп давно не используется
     *       + пользователь нажал Back
@@ -206,10 +241,18 @@ public class MainActivity extends AppCompatActivity {
         super.onDestroy();
         Log.i(TAG, "onDestroy()");
     }
+
+    @Override
+    public void onBackPressed() {
+        Log.i(TAG, "onBackPressed()");
+        super.onBackPressed();
+    }
+
 }
 
 
-/* Каждая операция должна быть зарегистрирована в манифесте*/
+/* Каждая операция должна быть зарегистрирована в манифесте
+* <activity android:name="com.galukhin.activity.MainActivity">*/
 
 
 /* После публикации не менять названия активности - поломается, напр, ярлык*/
@@ -241,18 +284,20 @@ public class MainActivity extends AppCompatActivity {
 * 7. onStop()
 * 8. > НАЖАЛИ BACK
 * 9. onPause(), onSaveInstanceState() // для другой активности
-* 10. onDestroy() для другой активности!
-* 11. onRestart()
-* 12. onStart()
-* 13. onResume()
-* 14. onStop() для другой активности
+* 10. onRestart()
+* 11. onStart()
+* 12. onResume()
+* 13. onStop() для другой активности
+* 14. onDestroy() для другой активности
 * 15. > НАЖАЛИ HOMESCREEN ИЛИ СНОВА BACK
 * 16. onPause(), onSaveInstanceState(), onStop() // для обоих вариантов
 * 17. onDestroy() (только для BACK) */
 
 
-/*ДРУГАЯ ОПЕРАЦИЯ ИЛИ ДИАЛОГОВОЕ ОКНО НА ПЕРЕДНЕМ ПЛАНЕ. КНОПКИ OVERVIEW И HOME
+/*ДРУГАЯ ОПЕРАЦИЯ ИЛИ ДИАЛОГОВОЕ ОКНО (!КАК ОПЕРАЦИЯ) НА ПЕРЕДНЕМ ПЛАНЕ. КНОПКИ OVERVIEW И HOME
 * - если частично закрывает - переводит операцию в состояние Paused, потом обратно в onResume()
+* - !!! касается только диалога, который является другой операцией
+* - !!! т.е. появляется новая операция в стеке
 * - если полностью - вызываются onPause() и onStop(), потом обратно onRestart(), onStart(), onResume()
 * - если новая копия операции, которая на фоне - onRestart() не вызывается, только onStart() и onResume()
 * - кнопки Overview или Home ведут себя, будто текущая операция полностью перекрывается */
@@ -260,11 +305,9 @@ public class MainActivity extends AppCompatActivity {
 
 /* КНОПКА BACK
 * - вызов onPause(), onStop(), onDestroy()
-*
-* - кроме уничтожения операции еще и удаления из обратного стека
-*
-* - по дефолту onSaveInstanceState() не вызывается. Если что - onBackPressed() - для подтверждения
-* выхода + желательно вызов super.onBackPressed() */
+* - кроме уничтожения операции еще и удаление из обратного стека
+* - по дефолту onSaveInstanceState() не вызывается
+* (Если что - onBackPressed() - для подтверждения выхода + желательно вызов super.onBackPressed()) */
 
 
 /* СМЕНА КОНФИГУРАЦИИ:
@@ -308,13 +351,13 @@ public class MainActivity extends AppCompatActivity {
 /*ТАСКИ И ОБРАТНЫЙ СТЕК
 * - таск - коллекция операций, с которыми работает пользователь, делая какую-то работу
 *
-* - таск может уходить на фон - юзер начал новый или ушел на рабочий стол кнопкой Home
+* - таск может уходить в фон - юзер начал новый или ушел на рабочий стол кнопкой Home
 *
-* - если соберется много фоновых тасков - система может начать уничтожать операции для
+* - если соберется много фоновых тасков - система может начать уничтожать операции в них для
 * восстановления памяти
 *
-* - операции организованы в обратный стек - в порядке, в котором открывались.
-* предыдущая операция останавливается, когда добавляется новая
+* - операции организованы в обратный стек - в порядке, в котором открывались. предыдущая операция
+* останавливается, когда добавляется новая
 *
 * - порядок операций не меняется - только добавляются в конец или убираются оттуда
 *
@@ -371,15 +414,15 @@ public class MainActivity extends AppCompatActivity {
 *       этой, открывается в отдельном таске. Должен использоваться только если у активности есть
 *       фильтр ACTION_MAIN + CATEGORY_LAUNCHER
 *
-*   (если таск покинут на долгое время, система очистит из него все активности, кроме корневой
+*   (!!! если таск покинут на долгое время, система очистит из него все активности, кроме корневой
 *   (типа юзер забил, на то, что делал)):
-*       + clearTaskOnLaunch: если true для корневой операции таска, то описанное выше дефолтное
+*       + alwaysRetainTaskState: если true для корневой операции таска, то описанное выше дефолтное
 *       поведение не происходит. Таск сохраняет все операции продолжительное время
 *
-*       + alwaysRetainTaskState: если true для корневой операции таска, таск очищается до корневой
+*       + clearTaskOnLaunch: если true для корневой операции таска, таск очищается до корневой
 *       операции каждый раз, когда юзер покидает его и возвращается к нему. Т.е. противоположность
 *       alwaysRetainTaskState
-
+*
 *       + finishOnTaskLaunch: как clearTaskOnLaunch, но для одной операции, а не всего таска. Может
 *       привести к удалению всех операций, в т.ч. корневой. Операция является частью таска только
 *       в ходе текущей сессии
@@ -422,7 +465,7 @@ public class MainActivity extends AppCompatActivity {
 
 /*ВЕРОЯТНОСТЬ УДАЛЕНИЯ:
 * - Меньшая: Передний план (или подготовка к нему) - состояние операции (Created, Started, Resumed)
-* - Большая: Фон (утеря фокуса) - состояние операции (Paused)
+* - Большая: Фон (потеря фокуса) - состояние операции (Paused)
 * - Еще большая:
 *       + Фон (не видно юзеру) - состояние операции (Stopped)
 *       + Пустая - состояние операции (Destroyed)*/
@@ -452,3 +495,35 @@ public class MainActivity extends AppCompatActivity {
 * кешированные и переходит к некешированным.
 * В к. процессах обычно 1 или несколько копий остановленных операций (onStop()) - их смерть
 * не приведет к потере, когда юзер к ним вернется - будут воссозданы в новом процессе.*/
+
+
+/* ВАЖНЫЕ МЕТОДЫ (кроме перечисленных выше)
+* - dispatch...Event(...Event ev): обработка разных событий
+* - finish(): вызывай, когда с активностью покончено и ее нужно закрыть
+* - getActionBar(): получить ссылку на ActionBar этой активности.
+* - getApplication(): вернуть application, которое обладает данной операцией
+* - getCurrentFocus(): вернуть текущий view в фокусе.
+* - getFragmentManager(): вернуть FragmentManager для взаимодействия с фрагментами данной операции
+* - getIntent(): вернуть intent, который начал эту операцию
+* - getLayoutInflater(): удобство для вызова getLayoutInflater().
+* - getLoaderManager(): вернуть LoaderManager для этой активности, создав его, если надо
+* - getMenuInflater(): вернуть MenuInflater с данным контекстом
+* - getPreferences(int mode): получить SharedPreferences для доступа к настройкам этой операции
+* - onBackPressed(): вызывается, когда операция определила нажатие кнопки back пользователем
+* - onContextItemSelected(MenuItem item)
+* - onCreateOptionsMenu(Menu menu): инициализирует содержимое стандартного меню операции
+* - onMenuItemSelected (int featureId, MenuItem item)
+* - onNavigateUp(): вызывается, когда пользователь выбирает поднятся вверх по иерархии из action bar
+* - onOptionsItemSelected(MenuItem item)
+* - openContextMenu(View view): программного открыть контекстное меню для конкретного view
+* - openOptionsMenu()
+* - recreate(): приводит к пересозданию данной операции в новом объекте
+* - registerForContextMenu(View view): регистрирует контекстное меню для показа для данного view
+* (несколько views могут показывать контекстное меню).
+* - runOnUiThread(Runnable action): данное действие будет выполнено на UI ветке
+* - setActionBar(Toolbar toolbar): установить Toolbar для работы как ActionBar для данного окна операции
+* - setRequestedOrientation(int requestedOrientation): изменить желаемую ориентацию операции
+* - setTitle(CharSequence title): изменить название, ассоциируемое с операцией
+* - setVisible(boolean visible): установить видимость главного окна данной операции
+* - startActivityForResult(Intent intent, int requestCode, Bundle options): запустить операцию, от
+* которой нужно получить результат по завершении*/
