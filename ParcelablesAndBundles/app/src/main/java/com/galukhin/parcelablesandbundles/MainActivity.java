@@ -6,9 +6,34 @@ import android.os.Bundle;
 import android.widget.Button;
 
 
-/*- для преодоления границ процессов
+public class MainActivity extends AppCompatActivity {
 
-- для IPC/Binder транзакций
+    private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
+
+    Button button;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        button = findViewById(R.id.button);
+        button.setOnClickListener(v -> {
+            // This is an explicit intent as it has a known target
+            Intent intent = new Intent(MainActivity.this, SecondaryActivity.class);
+
+            /*I may create a Bundle by myself, put extras there and add it to intent
+            or I may call putExtras and it creates a Bundle and adds extras to it automatically*/
+            intent.putExtra("button name", button.toString());
+            intent.putExtra("button id", button.getId());
+            startActivity(intent);
+        });
+
+    }
+}
+
+
+/*- для преодоления границ процессов (напр. с IPC/Binder транзакциями)
 
 - для передачи данных между активностями и интентами
 
@@ -44,29 +69,3 @@ import android.widget.Button;
 - до Android 7.0 (API level 24) TransactionTooLargeException - только в логкэте.
 *
 * */
-
-public class MainActivity extends AppCompatActivity {
-
-    private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
-
-    Button button;
-
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        button = findViewById(R.id.button);
-        button.setOnClickListener(v -> {
-            // This is an explicit intent as it has a known target
-            Intent intent = new Intent(MainActivity.this, SecondaryActivity.class);
-
-            /*I may create a Bundle by myself, put extras there and add it to intent
-            or I may call putExtras and it creates a Bundle and adds extras to it automatically*/
-            intent.putExtra("button name", button.toString());
-            intent.putExtra("button id", button.getId());
-            startActivity(intent);
-        });
-
-    }
-}

@@ -11,12 +11,37 @@
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity">
             <intent-filter>
+                <!-- ACTION_MAIN указывает, что это основная точка входа, и не ожидает данных
+                объекта Intent.-->
                 <action android:name="android.intent.action.MAIN" />
-
+                <!-- CATEGORY_LAUNCHER указывает, что значок этой операции следует поместить в
+                средство запуска приложений системы. Если элемент activity не содержит указаний на
+                конкретный значок с помощью icon, то система воспользуется значком из элемента
+                application -->
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SecondaryActivity"></activity>
+        <activity android:name=".SecondaryActivity">
+            <!-- Фильтр для получения неявных интентов "SEND" с текстовыми данными -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <!-- Нужно обязательно указать DEFAULT-->
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <!-- Операция также принимает "SEND" и "SEND_MULTIPLE" с медиа данными -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <action android:name="android.intent.action.SEND_MULTIPLE" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="application/vnd.google.panorama360+jpg" />
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+
+        </activity>
     </application>
 
 </manifest>
