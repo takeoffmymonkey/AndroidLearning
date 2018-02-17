@@ -2,8 +2,8 @@ package com.galukhin.pendingintent;
 
 import android.app.PendingIntent;
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,6 +31,10 @@ public class MainActivity extends AppCompatActivity {
             PendingIntent sender = PendingIntent.getActivity(this, 123, intent,
                     PendingIntent.FLAG_ONE_SHOT);
 
+            try {
+                sender.send();
+            } catch (PendingIntent.CanceledException e) {
+            }
         });
 
     }
