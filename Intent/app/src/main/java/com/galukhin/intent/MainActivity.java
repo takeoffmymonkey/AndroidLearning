@@ -86,6 +86,9 @@ public class MainActivity extends AppCompatActivity {
 /*Intent extends Object implements Parcelable, Cloneable*/
 
 
+/* PendingIntent вынесен в отдельный проект */
+
+
 /*ЗАЧЕМ
 * - для запуска операции: передать Intent методу startActivity()
 * - для запуска операции и возвращения результата: методом startActivityForResult() - вернет Intent
