@@ -17,8 +17,11 @@ public class SecondaryActivity extends AppCompatActivity {
         setTitle("SecondaryActivity");
 
         tv = findViewById(R.id.textView);
-        //Распаковываем и устанавливаем данные (только на null проверить надо)
-        tv.setText(getIntent().getStringExtra(Intent.EXTRA_TEXT));
+
+        String receivedExtraText = getIntent().getStringExtra(Intent.EXTRA_TEXT);
+        if (receivedExtraText == null) // Пришел сюда по кастомному фильтру
+            receivedExtraText = getIntent().getStringExtra(MainActivity.CUSTOM_EXTRA_TEXT);
+        tv.setText(receivedExtraText);
 
     }
 }

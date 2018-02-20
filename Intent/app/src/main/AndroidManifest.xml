@@ -21,7 +21,9 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SecondaryActivity">
+        <activity
+            android:name=".SecondaryActivity"
+            android:exported="false"> <!-- Чтобы другие аппы не смогли вызвать операцию -->
             <!-- Фильтр для получения неявных интентов "SEND" с текстовыми данными -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
@@ -40,7 +42,12 @@
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
-
+            <!-- Фильтр для моего кастомного действия -->
+            <intent-filter>
+                <action android:name="com.galukhin.intent.CUSTOM_ACTION" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
         </activity>
     </application>
 

@@ -1,18 +1,30 @@
 package com.galukhin.intent;
 
 import android.content.Intent;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.widget.Button;
+
+import java.util.List;
+
+import static android.content.pm.PackageManager.MATCH_DEFAULT_ONLY;
 
 public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
 
+    // Можно создавать свои экшены (нужно имя пакета), но обычно используются дефолтные
+    public static final String CUSTOM_ACTION = "com.galukhin.intent.CUSTOM_ACTION";
+    // Можно также создавать свои ключи для putExtra()
+    public static final String CUSTOM_EXTRA_TEXT = "com.galukhin.intent.CUSTOM_EXTRA_TEXT";
+
+
     Button btnExplicitActivity; // Для явного запуска операции
     Button btnImplicitActivity; // Для неявного интента
     Button btnImplicitActivityAlwaysChoose; // Для неявного интента с постоянным выбором (без дефолта)
-
+    Button btnImplicitActivityCustomAction; // Для неявного интента, который проходит по моему фильтру
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,8 +81,34 @@ public class MainActivity extends AppCompatActivity {
             // Нужно создать отдельный intent для показа диалогового окна выбора
             Intent chooser = Intent.createChooser(sendIntent, title);
 
+            /*Можно получить списком операции, которые могут разрешить интент
+            * Первое в списке будет то, что возвращается resolveActivity()
+            * MATCH_DEFAULT_ONLY - только операции, которые поддерживают CATEGORY_DEFAULT.
+            * Иначе - MATCH_ALL или другие*/
+            List<ResolveInfo> resolveInfos = getPackageManager().
+                    queryIntentActivities(sendIntent, MATCH_DEFAULT_ONLY);
+            Log.i(TAG, resolveInfos.toString());
+
+            /*Ну или стандартный вариант*/
             if (sendIntent.resolveActivity(getPackageManager()) != null) {
                 startActivity(chooser);
+            }
+        });
+
+
+        /*Неявный интент с постоянным выбором варианта (без кнопки "использовать по умолчанию") */
+        btnImplicitActivityCustomAction = findViewById(R.id.btn_implicit_activity_custom_action);
+        btnImplicitActivityCustomAction.setOnClickListener(v -> {
+            String textMessage = "Пришел по своему фильтру";
+
+            // Можно задавать действие в конструкторе
+            Intent sendIntent = new Intent();
+            sendIntent.setAction(CUSTOM_ACTION);
+            sendIntent.putExtra(CUSTOM_EXTRA_TEXT, textMessage);
+            sendIntent.setType("text/plain");
+
+            if (sendIntent.resolveActivity(getPackageManager()) != null) {
+                startActivity(sendIntent);
             }
         });
 
@@ -80,6 +118,8 @@ public class MainActivity extends AppCompatActivity {
 
         // TODO: 017 17 Feb 18 Попробовать рассылку широковещательных сообщений
 
+
+        // TODO: 020 20 Feb 18 Лучше разобраться с разрешением объектов
     }
 }
 
@@ -114,13 +154,13 @@ public class MainActivity extends AppCompatActivity {
 * - если подходит 1 фильтр - сразу запускается подходящее действие
 * - если подходит несколько фильтров - диалоговое окно с выбором
 * - если ни один - аварийное завершение. Проверить: resolveActivity()
-* - можно сделать так, чтобы не выбирался дефолтный вариант
+* - можно сделать так, чтобы нельзя было выбирать дефолтный вариант
 * - не запускать свои службы неявным интентом*/
 
 
 /* Запуск служб с помощью неявных объектов Intent является рискованным с точки зрения безопасности,
 * поскольку нельзя быть на абсолютно уверенным, какая служба отреагирует на такой объект Intent,
-* а пользователь не может видеть, какая служба запускается
+* а пользователь не может видеть, какая служба запускается.
 *
 * Начиная с Android 5.0 (уровень API 21) система вызывает исключение при вызове метода bindService()
 * с помощью неявного объекта Intent*/
