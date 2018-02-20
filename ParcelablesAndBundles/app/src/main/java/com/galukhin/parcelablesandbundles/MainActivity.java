@@ -1,8 +1,8 @@
 package com.galukhin.parcelablesandbundles;
 
 import android.content.Intent;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.widget.Button;
 
 
@@ -10,62 +10,113 @@ public class MainActivity extends AppCompatActivity {
 
     private final String TAG = "Blya, " + MainActivity.class.getSimpleName();
 
-    Button button;
+    final static String STRING_DATA = "string";
+    final static String INT_DATA = "integer";
+
+
+    Button btnSimpleData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        button = findViewById(R.id.button);
-        button.setOnClickListener(v -> {
-            // This is an explicit intent as it has a known target
+
+        /*Пересылка простых данных между операциями*/
+        btnSimpleData = findViewById(R.id.btn_simple_data);
+        btnSimpleData.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SecondaryActivity.class);
 
-            /*I may create a Bundle by myself, put extras there and add it to intent
-            or I may call putExtras and it creates a Bundle and adds extras to it automatically*/
-            intent.putExtra("button name", button.toString());
-            intent.putExtra("button id", button.getId());
+            /* Можно создать Bundle и в него ложить простые данные */
+            Bundle bundle = new Bundle();
+            bundle.putInt(INT_DATA, 100000);
+            intent.putExtras(bundle); // !!! Не забыть добавить Bundle в Intent
+
+            /* Или можно ложить простые данные сразу в Intent - Bundle создается и добавляется
+             * автоматически */
+            intent.putExtra(STRING_DATA, "Тестовая строка");
+
             startActivity(intent);
         });
 
+        /*Пересылка объекта между операциями*/
+
+
+        // TODO: 020 20 Feb 18 Пересылка данных между процессами
     }
 }
 
 
-/*- для преодоления границ процессов (напр. с IPC/Binder транзакциями)
-
-- для передачи данных между активностями и интентами
-
-- для сохранение состояния перехода при изменениях конфигурации
-
-- Parcel - не механизм сериализации общего назначения - никогда не хранить данные Parcel на диске или отправлять по сети
-* */
+/* ДЛЯ ЧЕГО НУЖНО ПЕРЕДАВАТЬ ДАННЫЕ
+ * - для преодоления границ процессов (напр. с IPC/Binder транзакциями)
+ * - для передачи данных между активностями и интентами
+ * - для сохранения состояния перехода при изменениях конфигурации*/
 
 
 /*ПЕРЕСЫЛКА ДАННЫХ МЕЖДУ ОПЕРАЦИЯМИ
-* - при создании объекта интент - метод putExtra(java.lang.String, java.lang.String)
-
-- класс Bundle высокооптимизирован для преобразования передаваемых данных в пакетах
-
-- при передаче данных через интент ограничивать их до нескольких кб, иначе TransactionTooLargeException
-
-- до Android 7.0 (API level 24) TransactionTooLargeException - только в логкэте
-
-- если нужно передать сложный или составной объект - кастомный класс должен имплементировать Parcelable
+* - для простых данных - класс Bundle или метод putExtra() у Intent
 *
+* - для объектов - должен имплементировать Parcelable
 *
-* */
+* - при передаче данных через интент ограничивать их до нескольких кб, иначе
+* TransactionTooLargeException
+*
+* - до Android 7.0 (API level 24) TransactionTooLargeException - только в логкэте*/
 
 
 /*ПЕРЕСЫЛКА ДАННЫХ МЕЖДУ ПРОЦЕССАМИ
+* - не рекомендуется использовать кастомный Parcelable - нужно удостовериться, что в обоих аппах та
+* же версия кастомного класса
 *
-*- не рекомендуется использовать кастомный parcelable - нужно удостовериться, что в обоих аппах та же версия кастомного класса
+* - система не поймет кастомный класс - ей не слать (напр. в AlarmManager)
+*
+* - лимит буфера транзакций Binder 1MB - на все транзакции для процесса, который выполняется - иначе
+* TransactionTooLargeException
+*
+* - до Android 7.0 (API level 24) TransactionTooLargeException - только в логкэте. */
 
-- система не поймет кастомный класс - ей не слать (напр. в AlarmManager)
 
-- лимит буфера транзакций Binder 1MB - на все транзакции для процесса, который выполняется - иначе TransactionTooLargeException
+/* BUNDLE
+* - extends BaseBundle implements Cloneable, Parcelable
+* - Простая привязка строк к разным Parcelable значениям
+* - высокооптимизирован для преобразования передаваемых данных в пакетах*/
 
-- до Android 7.0 (API level 24) TransactionTooLargeException - только в логкэте.
+
+/* ОСНОВНЫЕ МЕТОДЫ BUNDLE
+* - clear(): удаляет все элементы из маппинга этого Bundle
+*
+* - clone(): клонирует текущий Bundle
+*
+* - get...(String key, ... defaultValue): возвращает значение, ассоциированное с указанным ключом,
+* либо дефолтное значение, если желаемого типа по указанному ключу не существует
+*
+* - put...(String key, ... value): Вставляет значение в маппинг этого Bundle, заменяя существующее
+* по указанному ключу
+*
+* - putAll(Bundle bundle): вставляет все маппинги с указанного Bundle в данный
+*
+* - remove(String key): удаляет запись по указанному ключу из маппинга для этого Bundle*/
+
+
+/* PARCELABLE
+* public interface Parcelable
+*
+* - интерфейс для классов, чьи экземпляры могут быть записаны в и восстановлены из Parcel.
+*
+* - классы, имплементирующие Parcelable, должны также иметь non-null статичное поле CREATOR типа,
+* имплементирующего интерфейс Parcelable.Creator.
+*
 *
 * */
+
+
+/* PARCEL
+ * Parcel - не механизм сериализации общего назначения - никогда не хранить данные Parcel на диске или отправлять по сети
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ * */
