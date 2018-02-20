@@ -6,11 +6,45 @@
     tools:context="com.galukhin.pendingintent.MainActivity">
 
     <Button
-        android:id="@+id/btn_pending"
+        android:id="@+id/btn_pending_activity"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:text="OPEN via Pending"
+        android:text="ACTIVITY"
+        tools:layout_editor_absoluteX="148dp"
+        tools:layout_editor_absoluteY="88dp" />
+
+
+    <Button
+        android:id="@+id/btn_pending_alarm_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_pending_activity"
+        android:layout_centerHorizontal="true"
+        android:text="ALARM(2s)+ACTIVITY"
+        tools:layout_editor_absoluteX="148dp"
+        tools:layout_editor_absoluteY="88dp" />
+
+
+    <Button
+        android:id="@+id/btn_pending_alarm_broadcast_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_pending_activity"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="47dp"
+        android:text="ALARM(2s)+BROADC+ACTIVITY"
+        tools:layout_editor_absoluteX="148dp"
+        tools:layout_editor_absoluteY="88dp" />
+
+
+    <Button
+        android:id="@+id/btn_pending_notification_activity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/btn_pending_alarm_broadcast_activity"
+        android:layout_centerHorizontal="true"
+        android:text="NOTIFICATION+ACTIVITY"
         tools:layout_editor_absoluteX="148dp"
         tools:layout_editor_absoluteY="88dp" />
 

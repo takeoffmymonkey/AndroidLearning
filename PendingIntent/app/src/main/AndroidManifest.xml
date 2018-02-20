@@ -16,7 +16,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".SecondaryActivity"></activity>
+        <activity android:name=".SecondaryActivity" />
+
+        <receiver
+            android:name=".Receiver"
+            android:enabled="true"
+            android:exported="true"></receiver>
     </application>
 
 </manifest>
