@@ -12,9 +12,11 @@ public class MainActivity extends AppCompatActivity {
 
     final static String STRING_DATA = "string";
     final static String INT_DATA = "integer";
+    final static String OBJECT_DATA = "object";
 
 
-    Button btnSimpleData;
+    Button btnSimpleData; // Для пересылки примитивных данных
+    Button btnObject; // Для пересылки объектов
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,24 +24,35 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
 
-        /*Пересылка простых данных между операциями*/
+        /*Пересылка примитивных данных между операциями*/
         btnSimpleData = findViewById(R.id.btn_simple_data);
         btnSimpleData.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, SecondaryActivity.class);
 
             /* Можно создать Bundle и в него ложить простые данные */
             Bundle bundle = new Bundle();
-            bundle.putInt(INT_DATA, 100000);
+            bundle.putInt(INT_DATA, 111);
             intent.putExtras(bundle); // !!! Не забыть добавить Bundle в Intent
 
             /* Или можно ложить простые данные сразу в Intent - Bundle создается и добавляется
              * автоматически */
-            intent.putExtra(STRING_DATA, "Тестовая строка");
+            intent.putExtra(STRING_DATA, "Простая строка");
 
             startActivity(intent);
         });
 
+
         /*Пересылка объекта между операциями*/
+        btnObject = findViewById(R.id.btn_object);
+        btnObject.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, SecondaryActivity.class);
+
+            /* Передаваемый объект должен имплементировать интерфейс Parcelable*/
+            MyParcelable myParcelable = new MyParcelable();
+            intent.putExtra(OBJECT_DATA, myParcelable);
+
+            startActivity(intent);
+        });
 
 
         // TODO: 020 20 Feb 18 Пересылка данных между процессами
@@ -98,25 +111,4 @@ public class MainActivity extends AppCompatActivity {
 * - remove(String key): удаляет запись по указанному ключу из маппинга для этого Bundle*/
 
 
-/* PARCELABLE
-* public interface Parcelable
-*
-* - интерфейс для классов, чьи экземпляры могут быть записаны в и восстановлены из Parcel.
-*
-* - классы, имплементирующие Parcelable, должны также иметь non-null статичное поле CREATOR типа,
-* имплементирующего интерфейс Parcelable.Creator.
-*
-*
-* */
-
-
-/* PARCEL
- * Parcel - не механизм сериализации общего назначения - никогда не хранить данные Parcel на диске или отправлять по сети
- *
- *
- *
- *
- *
- *
- *
- * */
+/* Parcel и Parcelable в классе MyParcelable*/

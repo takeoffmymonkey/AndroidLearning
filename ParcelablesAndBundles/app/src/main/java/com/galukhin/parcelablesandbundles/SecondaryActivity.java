@@ -4,12 +4,14 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SecondaryActivity extends AppCompatActivity {
 
     private final String TAG = "Blya, " + SecondaryActivity.class.getSimpleName();
     private String passedString;
     private int passedInteger;
+    MyParcelable passedObject;
 
 
     @Override
@@ -21,11 +23,18 @@ public class SecondaryActivity extends AppCompatActivity {
         TextView tvString = findViewById(R.id.tv_string);
         TextView tvInt = findViewById(R.id.tv_int);
 
-        // Retrieve simple data from another activity
+        // Получить данные из другой активности
         getBundledData(getIntent());
 
+        // Поставить значения в виджеты
         tvString.setText(passedString);
         tvInt.setText(Integer.toString(passedInteger));
+
+        // Если есть объект, то взять данные из него
+        if (passedObject != null) {
+            tvInt.setText(Integer.toString(passedObject.someInt));
+            tvString.setText(passedObject.someClass.someClassString);
+        }
     }
 
     private void getBundledData(Intent intent) {
@@ -37,6 +46,9 @@ public class SecondaryActivity extends AppCompatActivity {
             }
             if (bundle.containsKey(MainActivity.INT_DATA)) {
                 passedInteger = bundle.getInt(MainActivity.INT_DATA, 666);
+            }
+            if (bundle.containsKey(MainActivity.OBJECT_DATA)) {
+                passedObject = bundle.getParcelable(MainActivity.OBJECT_DATA);
             }
         }
     }
